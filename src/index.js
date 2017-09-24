@@ -50,8 +50,6 @@ function countZerosAtTheEnd(str){
 }
 
 var bigInt = (function (undefined) {
-    "use strict";
-
     var BASE = 1e7,
         LOG_BASE = 7,
         MAX_INT = 9007199254740992,
@@ -148,32 +146,6 @@ var bigInt = (function (undefined) {
         return r;
     }
 
-    function multiplyKaratsuba(x, y) {
-        var n = Math.max(x.length, y.length);
-
-        if (n <= 30) return multiplyLong(x, y);
-        n = Math.ceil(n / 2);
-
-        var b = x.slice(n),
-            a = x.slice(0, n),
-            d = y.slice(n),
-            c = y.slice(0, n);
-
-        var ac = multiplyKaratsuba(a, c),
-            bd = multiplyKaratsuba(b, d),
-            abcd = multiplyKaratsuba(addAny(a, b), addAny(c, d));
-
-        var product = addAny(addAny(ac, shiftLeft(subtract(subtract(abcd, ac), bd), n)), shiftLeft(bd, 2 * n));
-        trim(product);
-        return product;
-    }
-
-    // The following function is derived from a surface fit of a graph plotting the performance difference
-    // between long multiplication and karatsuba multiplication versus the lengths of the two arrays.
-    function useKaratsuba(l1, l2) {
-        return -0.012 * l1 - 0.012 * l2 + 0.000015 * l1 * l2 > 0;
-    }
-
     BigInteger.prototype.multiply = function (v) {
         var n = parseValue(v),
             a = this.value, b = n.value,
@@ -189,12 +161,8 @@ var bigInt = (function (undefined) {
             }
             b = smallToArray(abs);
         }
-        if (useKaratsuba(a.length, b.length)) // Karatsuba is only faster for certain array sizes
-            return new BigInteger(multiplyKaratsuba(a, b), sign);
         return new BigInteger(multiplyLong(a, b), sign);
     };
-
-    BigInteger.prototype.times = BigInteger.prototype.multiply;
 
     function multiplySmallAndArray(a, b, sign) { // a >= 0
         if (a < BASE) {
@@ -293,10 +261,6 @@ var bigInt = (function (undefined) {
         }
         return v;
     }
-
-    Integer.fromArray = function (digits, base, isNegative) {
-        return parseBaseFromArray(digits.map(parseValue), parseValue(base || 10), isNegative);
-    };
 
     return Integer;
 })();
